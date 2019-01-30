@@ -20,7 +20,7 @@ trap finish EXIT
 function cluster_init() {
 	#This only works with kubernetes 1.12+. The kubeadm.yaml is setup
 	#to enable the RuntimeClass featuregate
-	sudo -E kubeadm init --config=./kubeadm.yaml
+	sudo -E kubeadm init --config=./kubeadm.yaml #--skip-phases addon/kube-proxy
 
 	rm -rf $HOME/.kube
 	mkdir -p $HOME/.kube
@@ -49,8 +49,9 @@ function runtimeclass_kata() {
 }
 
 function cni() {
-	kubectl apply -f 0-canal/rbac.yaml
-	kubectl apply -f 0-canal/canal.yaml
+	kubectl apply -f 0-cilium/
+	#kubectl apply -f 0-canal/rbac.yaml
+	#kubectl apply -f 0-canal/canal.yaml
 }
 
 function metrics() {
