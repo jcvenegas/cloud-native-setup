@@ -33,8 +33,7 @@ install_containerd(){
 	# FIXME consider handle arch
 	curl -OL https://storage.googleapis.com/cri-containerd-release/cri-containerd-${VERSION}.linux-amd64.tar.gz
 	sudo tar -C / -xzf cri-containerd-${VERSION}.linux-amd64.tar.gz
-	sudo systemctl stop containerd || true
-	sudo systemctl start containerd
+	sudo systemctl restart containerd
 }
 
 # clear cloud native 
