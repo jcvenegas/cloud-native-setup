@@ -67,9 +67,71 @@ EOT
 	exit "${exit_code}"
 }
 
+install_img(){
+	if command -v img; then
+		return
+	fi
+	install_runc
+	local IMG_SHA256="41aa98ab28be55ba3d383cb4e8f86dceac6d6e92102ee4410a6b43514f4da1fa"
+	# Download and check the sha256sum.
+	sudo -E curl -fSL "https://github.com/genuinetools/img/releases/download/v0.5.7/img-linux-amd64" -o "/usr/local/bin/img"
+	echo "${IMG_SHA256}  /usr/local/bin/img" | sha256sum -c -
+	sudo chmod a+x "/usr/local/bin/img"
+
+	echo "img installed!"
+
+}
+
+install_runc(){
+	if command -v runc; then
+		return
+	fi
+	# Install runc
+	local RUNC_VERSION=v1.0.0-rc8
+	sudo -E curl -fSL -o "/usr/bin/runc" "https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.amd64"
+	sudo chmod +x /usr/bin/runc
+}
+
+install_crio(){
+	 sudo apt-get install libgpgme-dev
+	 install_img
+
+	 img pull  jcvenega/kata-cri-o:ubuntu-lts-latest
+	 rm -rf "$(pwd)/crio-rootfs"
+	 img unpack  --output "$(pwd)/crio-rootfs"  jcvenega/kata-cri-o:ubuntu-lts-latest
+	 (
+	 cd crio-rootfs/crio-rootfs/
+	 echo "Move crio to rootfs"
+	 tar cf - .  | sudo tar xvf -  -C /
+	 )
+	 # by defeault crio looks for this path
+	 if [ ! -x "/usr/bin/runc" ];then
+		 runc_path=$(command -v runc)
+		 sudo ln -sf "$runc_path" /usr/bin/runc
+	 fi
+	sudo systemctl daemon-reload
+	sudo systemctl restart crio
+	sudo systemctl status crio
+}
+
 all(){
+
+	runtime=${2:-none}
 	install_k8s
-	install_containerd
+	install_img
+	case "${runtime}" in
+		containerd)
+			install_containerd
+			;;
+		crio)
+			install_crio
+			;;
+		*)
+			echo "No runtime provided using crio"
+			install_crio
+			;;
+	esac
+
 	get_clear_cloud_native
 }
 
@@ -85,6 +147,9 @@ command_help[get_clear_cloud_native]="Get Clear Clould Native setup"
 command_handlers[install-containerd]=install_containerd
 command_help[install-containerd]="Install containerd"
 
+command_handlers[install-crio]=install_crio
+command_help[install-crio]="Install crio"
+
 command_handlers[deploy-kata]=kata_deploy
 command_help[deploy-kata]="deploy kata in runnning cluster using kata-deploy"
 
@@ -93,7 +158,7 @@ command_help[deploy-kata]="Create a cluster with kata "
 
 cmd_handler=${command_handlers[${1:-none}]:-unimplemented}
 if [ "${cmd_handler}" != "unimplemented" ]; then
-	"${cmd_handler}"
+	"${cmd_handler}" $*
 else
 	print_usage_exit 1
 fi
