@@ -93,7 +93,7 @@ install_runc(){
 }
 
 install_crio(){
-	 sudo apt-get install libgpgme-dev
+	 sudo apt-get install -y libgpgme-dev
 	 install_img
 
 	 img pull  jcvenega/kata-cri-o:ubuntu-lts-latest
