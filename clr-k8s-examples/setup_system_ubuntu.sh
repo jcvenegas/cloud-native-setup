@@ -93,11 +93,10 @@ install_runc(){
 }
 
 install_crio(){
-	mkdir -p "/etc/cni/net.d/"
-
-	sudo mkdir -p /etc/containers/
 	sudo apt-get install -y libgpgme-dev
 	install_img
+
+	sudo mkdir -p "/etc/cni/net.d/"
 
 	img pull  jcvenega/kata-cri-o:ubuntu-lts-latest
 	rm -rf "$(pwd)/crio-rootfs"
