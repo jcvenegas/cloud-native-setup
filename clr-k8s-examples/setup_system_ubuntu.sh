@@ -93,22 +93,25 @@ install_runc(){
 }
 
 install_crio(){
-	 sudo apt-get install -y libgpgme-dev
-	 install_img
+	mkdir -p "/etc/cni/net.d/"
 
-	 img pull  jcvenega/kata-cri-o:ubuntu-lts-latest
-	 rm -rf "$(pwd)/crio-rootfs"
-	 img unpack  --output "$(pwd)/crio-rootfs"  jcvenega/kata-cri-o:ubuntu-lts-latest
-	 (
-	 cd crio-rootfs/crio-rootfs/
-	 echo "Move crio to rootfs"
-	 tar cf - .  | sudo tar xvf -  -C /
-	 )
-	 # by defeault crio looks for this path
-	 if [ ! -x "/usr/bin/runc" ];then
-		 runc_path=$(command -v runc)
-		 sudo ln -sf "$runc_path" /usr/bin/runc
-	 fi
+	sudo mkdir -p /etc/containers/
+	sudo apt-get install -y libgpgme-dev
+	install_img
+
+	img pull  jcvenega/kata-cri-o:ubuntu-lts-latest
+	rm -rf "$(pwd)/crio-rootfs"
+	img unpack  --output "$(pwd)/crio-rootfs"  jcvenega/kata-cri-o:ubuntu-lts-latest
+	(
+	cd crio-rootfs/crio-rootfs/
+	echo "Move crio to rootfs"
+	tar cf - .  | sudo tar xvf -  -C /
+	)
+	# by defeault crio looks for this path
+	if [ ! -x "/usr/bin/runc" ];then
+		runc_path=$(command -v runc)
+		sudo ln -sf "$runc_path" /usr/bin/runc
+	fi
 	sudo systemctl daemon-reload
 	sudo systemctl restart crio
 	sudo systemctl status crio
