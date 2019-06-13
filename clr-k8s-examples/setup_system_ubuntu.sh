@@ -119,19 +119,6 @@ install_crio(){
 		sudo ln -sf "$runc_path" /usr/bin/runc
 	fi
 
-	crio_config_file="/etc/crio/crio.conf"
-	echo "Set manage_network_ns_lifecycle to true"
-	network_ns_flag="manage_network_ns_lifecycle"
-	sudo sed -i "/\[crio.runtime\]/a$network_ns_flag = true" "$crio_config_file"
-	sudo sed -i 's/manage_network_ns_lifecycle = false/#manage_network_ns_lifecycle = false/' "$crio_config_file"
-
-	echo "Add docker.io registry to pull images"
-	# Matches cri-o 1.10 file format
-	sudo sed -i 's/^registries = \[/registries = \[ "docker.io"/' "$crio_config_file"
-	# Matches cri-o 1.12 file format
-	sudo sed -i 's/^#registries = \[/registries = \[ "docker.io" \] /' "$crio_config_file"
-
-
 	sudo systemctl daemon-reload
 	sudo systemctl restart crio
 	sudo systemctl status crio
