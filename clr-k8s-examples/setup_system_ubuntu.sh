@@ -42,9 +42,6 @@ get_clear_cloud_native(){
 	cd cloud-native-setup/clr-k8s-examples
 	# update repository if already downloaded
 	git pull || true
-	# clean any problematic envioment releated with the stack
-	./reset_stack.sh || true
-	./create_stack.sh minimal
 }
 
 kata_deploy(){
